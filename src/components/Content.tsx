@@ -10,6 +10,7 @@ export default function Content() {
   const [id, setId] = useState(null);
   const [time, setTime] = useState(null);
   const [date, setDate] = useState(null);
+  const [timeBank, setTimeBank] = useState("00:00:00");
   const [phase, setPhase] = useState(1);
   const url = "http://localhost:3001/times";
 
@@ -23,7 +24,20 @@ export default function Content() {
     });
   };
 
-  // function checkTime
+  function todayTimeBank(inTime: number, outTime: number) {
+    let totalTime = Math.abs(outTime - inTime);
+    return formatTime((totalTime -= 32400));
+  }
+
+  function formatTime(time: number) {
+    let h = Math.floor(time / 3600);
+    let m = Math.floor((time - h * 3600) / 60);
+    let s = Math.floor(time - (h * 3600 + m * 60));
+
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
 
   function checkIn(date: string, inTime: string) {
     axios
@@ -46,7 +60,8 @@ export default function Content() {
     id: any,
     date: any,
     inTime: any,
-    outTime: string
+    outTime: string,
+    time: any
   ) {
     axios
       .put(`${url}/${id}`, {
@@ -57,35 +72,11 @@ export default function Content() {
       .then((resp) => {
         setPost(resp.data);
         if (time) {
-          let outTime = timeToSeconds(resp.data.outTime);
-          let inTime = timeToSeconds(resp.data.inTime);
-
-          console.log(inTime + " - " + outTime);
-
-          //timebank
-          // let totalTime = Math.abs(inSeconds - outSeconds) - 32400;
-
-          // let h = Math.floor(totalTime / 3600);
-          // let m = Math.floor((totalTime - h * 3600) / 60 - 60);
-          // let s = Math.floor(
-          //   totalTime - h * 3600 - (totalTime - h * 3600) / 60 - 60
-          // );
-
-          //worked time
-          let totalTime = Math.abs(outTime - inTime);
-          console.log(totalTime);
-
-          let h = Math.floor(totalTime / 3600);
-          let m = Math.floor((totalTime - h * 3600) / 60);
-          let s = Math.floor(
-            totalTime - h * 3600 - (totalTime - h * 3600) / 60
-          );
-
-          let tt = `${h.toString().padStart(2, "0")}:${m
-            .toString()
-            .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-
-          console.log(tt);
+          let [outTime, inTime] = [
+            timeToSeconds(resp.data.outTime),
+            timeToSeconds(resp.data.inTime),
+          ];
+          setTimeBank(todayTimeBank(inTime, outTime));
         }
       })
       .catch((e) => e.message);
@@ -106,7 +97,7 @@ export default function Content() {
         checkIn(registro.date, registro.inTime);
       }
     } else {
-      checkOut(url, id, date, time, registro.outTime);
+      checkOut(url, id, date, time, registro.outTime, time);
     }
   }
 
@@ -124,7 +115,7 @@ export default function Content() {
       bg-gray-100
       "
       >
-        <TimeBank />
+        <TimeBank timeBank={timeBank} />
         <div>
           <Button onClick={marcar} funcao="Marcar" className="bg-blue-400" />
           <Button funcao="Histórico" className="bg-green-400" />

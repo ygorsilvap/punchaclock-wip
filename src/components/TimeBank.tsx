@@ -1,7 +1,7 @@
-// interface TimeBankProps {
+interface TimeBankProps {
+  timeBank: string;
+}
 
-// }
-
-export default function TimeBank() {
-  return <div className="mb-7">{`00:00:00`}</div>;
+export default function TimeBank(props: TimeBankProps) {
+  return <div className="mb-7">{props.timeBank}</div>;
 }
