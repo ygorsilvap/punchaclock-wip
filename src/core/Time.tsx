@@ -27,4 +27,18 @@ function timeToSeconds(time: string) {
   return tSeconds;
 }
 
-export { timeNow, dateNow, timeToSeconds };
+function formatTime(time: number) {
+  let h = Math.floor(Math.abs(time) / 3600);
+  let m = Math.floor((Math.abs(time) - h * 3600) / 60);
+  let s = Math.floor(Math.abs(time) - (h * 3600 + m * 60));
+
+  return time < 0
+    ? `-${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s
+        .toString()
+        .padStart(2, "0")}`
+    : `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s
+        .toString()
+        .padStart(2, "0")}`;
+}
+
+export { timeNow, dateNow, timeToSeconds, formatTime };

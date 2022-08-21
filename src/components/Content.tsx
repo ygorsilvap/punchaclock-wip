@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { timeNow, dateNow, timeToSeconds } from "../core/Time";
+import { timeNow, dateNow, timeToSeconds, formatTime } from "../core/Time";
 import WorkTime from "../core/WorkTime";
 import Button from "./Button";
 import TimeBank from "./TimeBank";
@@ -25,22 +25,12 @@ export default function Content() {
   };
 
   function todayTimeBank(inTime: number, outTime: number) {
-    let totalTime = Math.abs(outTime - inTime);
+    let totalTime = outTime - inTime;
     return formatTime((totalTime -= 32400));
   }
 
-  function formatTime(time: number) {
-    let h = Math.floor(time / 3600);
-    let m = Math.floor((time - h * 3600) / 60);
-    let s = Math.floor(time - (h * 3600 + m * 60));
-
-    return `${h.toString().padStart(2, "0")}:${m
-      .toString()
-      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  }
-
-  function checkIn(date: string, inTime: string) {
-    axios
+  async function checkIn(date: string, inTime: string) {
+    await axios
       .post(url, {
         date: date,
         inTime: inTime,
@@ -55,29 +45,34 @@ export default function Content() {
     setPhase(2);
   }
 
-  function checkOut(
+  async function checkOut(
     url: string,
     id: any,
     date: any,
     inTime: any,
-    outTime: string,
-    time: any
+    outTime: string
   ) {
-    axios
+    let [outTimeS, inTimeS] = [timeToSeconds(outTime), timeToSeconds(inTime)];
+    setTimeBank(todayTimeBank(inTimeS, outTimeS));
+    console.log(timeBank);
+
+    await axios
       .put(`${url}/${id}`, {
         date: date,
         inTime: inTime,
         outTime: outTime,
+        timeBank: timeBank,
       })
       .then((resp) => {
         setPost(resp.data);
-        if (time) {
-          let [outTime, inTime] = [
-            timeToSeconds(resp.data.outTime),
-            timeToSeconds(resp.data.inTime),
-          ];
-          setTimeBank(todayTimeBank(inTime, outTime));
-        }
+        // if (outTime) {
+        //   let [outTime, inTime] = [
+        //     timeToSeconds(resp.data.outTime),
+        //     timeToSeconds(resp.data.inTime),
+        //   ];
+        //   setTimeBank(todayTimeBank(inTime, outTime));
+        //   console.log(timeBank);
+        // }
       })
       .catch((e) => e.message);
     setPhase(1);
@@ -97,7 +92,7 @@ export default function Content() {
         checkIn(registro.date, registro.inTime);
       }
     } else {
-      checkOut(url, id, date, time, registro.outTime, time);
+      checkOut(url, id, date, time, registro.outTime);
     }
   }
 
