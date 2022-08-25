@@ -3,16 +3,24 @@ export default class WorkTime {
   #date: string;
   #inTime: string;
   #outTime: string;
+  #timeBank: string;
 
-  constructor(date: string, inTime: string, outTime: string, id: any = null) {
+  constructor(
+    date: string,
+    inTime: string,
+    outTime: string,
+    timeBank: string,
+    id: any = null
+  ) {
     this.#date = date;
     this.#inTime = inTime;
     this.#outTime = outTime;
+    this.#timeBank = timeBank;
     this.#id = id;
   }
 
   static blank() {
-    return new WorkTime("", "", "");
+    return new WorkTime("", "", "", "");
   }
 
   get id() {
@@ -27,5 +35,4 @@ export default class WorkTime {
   get outTime() {
     return this.#outTime;
   }
-
 }

@@ -27,6 +27,12 @@ function timeToSeconds(time: string) {
   return tSeconds;
 }
 
+function stringToTime(timeString: string) {
+  let time = timeString[0] === "-" ? timeString.slice(1) : timeString;
+  let [h, m, s] = [time[0] + time[1], time[3] + time[4], time[6] + time[7]];
+  return -Math.abs(parseInt(h) * 3600 + parseInt(m) * 60 + parseInt(s));
+}
+
 function formatTime(time: number) {
   let h = Math.floor(Math.abs(time) / 3600);
   let m = Math.floor((Math.abs(time) - h * 3600) / 60);
@@ -41,4 +47,4 @@ function formatTime(time: number) {
         .padStart(2, "0")}`;
 }
 
-export { timeNow, dateNow, timeToSeconds, formatTime };
+export { timeNow, dateNow, timeToSeconds, formatTime, stringToTime };
