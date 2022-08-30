@@ -13,30 +13,29 @@ import Button from "./Button";
 import TimeBank from "./TimeBank";
 
 export default function Content() {
+  const url = "http://localhost:3001/times";
   const [post, setPost] = useState(null);
   const [id, setId] = useState(null);
   const [time, setTime] = useState(null);
   const [date, setDate] = useState(null);
   const [timeBank, setTimeBank] = useState("00:00:00");
-  const [phase, setPhase] = useState("1");
-
-  const url = "http://localhost:3001/times";
+  const [phase, setPhase] = useState(1);
 
   useEffect(() => {
-    const data = localStorage.getItem("phase");
-    if (data) {
-      console.log("get " + data);
-      setPhase(JSON.parse(data));
+    // console.log(JSON.parse(localStorage.getItem("phase")!));
+    console.log("phase antes do ls ->" + phase);
+    console.log("phase salvo no ls-> " + localStorage.getItem("phase"));
+    if (typeof window !== "undefined" && phase === 2) {
+      localStorage.setItem("phase", JSON.stringify(phase));
+      console.log("phase salvo -> " + localStorage.getItem("phase"));
+      setPhase(JSON.parse(localStorage.getItem("phase")!));
     }
+    console.log("phase depois do ls-> " + localStorage.getItem("phase"));
   }, []);
 
   useEffect(() => {
     getTimes();
     getTimeBank();
-    console.log("set " + localStorage.getItem("phase"));
-    //CONTINUAR TENTANDO O LOCALSTORAGE
-    // const ISSERVER = typeof window === "undefined";
-    // if (!ISSERVER) localStorage.setItem("phase", JSON.stringify(phase));
   }, [phase]);
 
   const getTimes = () => {
@@ -47,7 +46,7 @@ export default function Content() {
 
   const getTimeBank = () => {
     axios.get(url).then((resp) => {
-      if (resp.data[resp.data.length - 1].timeBank) {
+      if (resp.data.length > 0 && resp.data[resp.data.length - 1].timeBank) {
         setTimeBank(resp.data[resp.data.length - 1].timeBank);
       }
     });
@@ -58,8 +57,8 @@ export default function Content() {
     return formatTime((totalTime -= 32400));
   }
 
-  async function checkIn(date: string, inTime: string) {
-    await axios
+  function checkIn(date: string, inTime: string) {
+    axios
       .post(url, {
         date: date,
         inTime: inTime,
@@ -71,10 +70,10 @@ export default function Content() {
         setDate(resp.data.date);
       })
       .catch((e) => e.message);
-    setPhase("2");
+    setPhase(2);
   }
 
-  async function checkOut(
+  function checkOut(
     url: string,
     id: any,
     date: any,
@@ -83,7 +82,7 @@ export default function Content() {
   ) {
     let [outTimeS, inTimeS] = [timeToSeconds(outTime), timeToSeconds(inTime)];
 
-    await axios
+    axios
       .put(`${url}/${id}`, {
         date: date,
         inTime: inTime,
@@ -95,10 +94,12 @@ export default function Content() {
         setTimeBank(todayTimeBank(inTimeS, outTimeS));
       })
       .catch((e) => e.message);
-    setPhase("1");
+    setPhase(1);
   }
 
   function marcar() {
+    console.log("phase -> " + phase);
+
     const registro = new WorkTime(
       `${dateNow()}`,
       `${timeNow()}`,
@@ -106,14 +107,28 @@ export default function Content() {
       `${""}`
     );
 
-    if (phase === "1") {
+    if (phase === 1) {
       if (registro.date === date) {
         return;
       } else {
         checkIn(registro.date, registro.inTime);
+        localStorage.setItem("id", JSON.stringify(id));
+        localStorage.setItem("date", JSON.stringify(date));
+        localStorage.setItem("time", JSON.stringify(time));
+        // console.log(localStorage.getItem("id"));
+        // console.log(localStorage.getItem("date"));
+        // console.log(localStorage.getItem("time"));
       }
-    } else {
+    } else if (phase === 2) {
+      // console.log(localStorage.getItem("id"));
+      // console.log(localStorage.getItem("date"));
+      // console.log(localStorage.getItem("time"));
+      setId(JSON.parse(localStorage.getItem("id")!));
+      setTime(JSON.parse(localStorage.getItem("time")!));
+      setDate(JSON.parse(localStorage.getItem("date")!));
       checkOut(url, id, date, time, registro.outTime);
+    } else {
+      console.log("phase errado ou nulo");
     }
   }
 
